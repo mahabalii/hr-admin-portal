@@ -1,0 +1,339 @@
+{
+  "uuid": "2de20376-a927-4f6a-81f5-21ff51f6c592",
+  "lastMigration": 33,
+  "name": "Hr admin portal api",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3001,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "06e6ee45-b36a-4462-8574-1ce1d878d9a5",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "",
+      "responses": [
+        {
+          "uuid": "a2504ccb-298f-4642-8c50-4e26e074d9ca",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "f1cce68d-f7ab-433f-8b2b-0b478658672e",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "072bde6b-fe05-4212-bbd4-e449446ee07e",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "aef3c1c9-6d89-498d-bae7-eff4f9f2b486",
+      "type": "http",
+      "documentation": "Login API",
+      "method": "post",
+      "endpoint": "auth/login",
+      "responses": [
+        {
+          "uuid": "c071c692-1667-4f79-8999-2e9b0755cde4",
+          "body": "\n{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"user\": {\n    \"id\": \"1\",\n    \"name\": \"Maker User\",\n    \"username\": \"maker1\",\n    \"role\": \"MAKER\"\n  },\n  \"token\": \"mock-maker-token\"\n}\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "username",
+              "value": "maker1",
+              "invert": false,
+              "operator": "equals"
+            },
+            {
+              "target": "body",
+              "modifier": "password",
+              "value": "maker@123",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "362f9670-1dfa-4b9d-86ba-ea6a43bd059d",
+          "body": "\n{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"user\": {\n    \"id\": \"2\",\n    \"name\": \"Checker User\",\n    \"username\": \"checker1\",\n    \"role\": \"CHECKER\"\n  },\n  \"token\": \"mock-checker-token\"\n}\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "username",
+              "value": "checker1",
+              "invert": false,
+              "operator": "equals"
+            },
+            {
+              "target": "body",
+              "modifier": "password",
+              "value": "checker@123",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "70e98690-47e3-45f0-91d4-05f4f3af3dd5",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"user\": {\n    \"id\": \"3\",\n    \"name\": \"Common User\",\n    \"username\": \"common1\",\n    \"role\": \"COMMON\"\n  },\n  \"token\": \"mock-common-token\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "username",
+              "value": "common1",
+              "invert": false,
+              "operator": "equals"
+            },
+            {
+              "target": "body",
+              "modifier": "password",
+              "value": "common@123",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "7b41c767-df30-4791-963d-17e3c1eebabf",
+          "body": "{\n  \"success\": false,\n  \"message\": \"Invalid username or password\"\n}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "5bdc353e-08a4-48b9-9a73-fdcf46ca2ea7",
+      "type": "http",
+      "documentation": "Employees API",
+      "method": "get",
+      "endpoint": "employees",
+      "responses": [
+        {
+          "uuid": "38916d4b-811c-4b07-bd9d-6b72e0e3e6cd",
+          "body": "\n{\n  \"success\": true,\n  \"message\": \"Employees fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"employeeId\": \"EMP001\",\n      \"firstName\": \"Rahul\",\n      \"lastName\": \"Sharma\",\n      \"email\": \"rahul@example.com\",\n      \"phone\": \"9876543210\",\n      \"department\": \"IT\",\n      \"designation\": \"Frontend Developer\",\n      \"employeeType\": \"Permanent\",\n      \"joiningDate\": \"2025-01-15\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 2,\n      \"employeeId\": \"EMP002\",\n      \"firstName\": \"Priya\",\n      \"lastName\": \"Singh\",\n      \"email\": \"priya@example.com\",\n      \"phone\": \"9876543211\",\n      \"department\": \"HR\",\n      \"designation\": \"HR Executive\",\n      \"employeeType\": \"Contract\",\n      \"joiningDate\": \"2025-03-10\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 3,\n      \"employeeId\": \"EMP003\",\n      \"firstName\": \"Amit\",\n      \"lastName\": \"Kumar\",\n      \"email\": \"amit@example.com\",\n      \"phone\": \"9876543212\",\n      \"department\": \"Finance\",\n      \"designation\": \"Accountant\",\n      \"employeeType\": \"Permanent\",\n      \"joiningDate\": \"2024-11-20\",\n      \"status\": \"INACTIVE\"\n    }\n  ]\n}\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "fe7a1c37-5aa1-44b1-a748-d8324ffdf62a",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "employee-types",
+      "responses": [
+        {
+          "uuid": "2840283e-22ce-48ba-808f-915748dba18f",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Employee types fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"typeCode\": \"ET001\",\n      \"typeName\": \"Permanent\",\n      \"description\": \"Full-time permanent employees\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 2,\n      \"typeCode\": \"ET002\",\n      \"typeName\": \"Contract\",\n      \"description\": \"Employees hired for a fixed period\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 3,\n      \"typeCode\": \"ET003\",\n      \"typeName\": \"Intern\",\n      \"description\": \"Employees working as interns\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 4,\n      \"typeCode\": \"ET004\",\n      \"typeName\": \"Part-Time\",\n      \"description\": \"Employees working for limited hours\",\n      \"status\": \"INACTIVE\"\n    }\n  ]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Fetches the list of all employee types from the HR Admin Portal. This endpoint is used to display employee type records in the Employee Types module. Supports viewing, searching, and pagination on the frontend.",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "rootChildren": [
+    {
+      "type": "route",
+      "uuid": "06e6ee45-b36a-4462-8574-1ce1d878d9a5"
+    },
+    {
+      "type": "route",
+      "uuid": "aef3c1c9-6d89-498d-bae7-eff4f9f2b486"
+    },
+    {
+      "type": "route",
+      "uuid": "5bdc353e-08a4-48b9-9a73-fdcf46ca2ea7"
+    },
+    {
+      "type": "route",
+      "uuid": "fe7a1c37-5aa1-44b1-a748-d8324ffdf62a"
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [],
+  "callbacks": []
+}
