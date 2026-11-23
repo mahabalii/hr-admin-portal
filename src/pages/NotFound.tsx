@@ -22,8 +22,8 @@ function NotFound() {
         Sorry, the page you are looking for does not exist.
       </p>
 
-      <Link to="/login">
-        Go to Login
+      <Link to="/dashboard">
+        Go to Dashboard
       </Link>
     </div>
   );

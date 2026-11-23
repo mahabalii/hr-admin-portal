@@ -271,6 +271,130 @@
       "responseMode": null,
       "streamingMode": null,
       "streamingInterval": 0
+    },
+    {
+      "uuid": "ed6a3255-038e-4057-81fb-e03e19d340bf",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "departments",
+      "responses": [
+        {
+          "uuid": "0ceb5ec3-3489-4994-82e9-64416fa2eaa6",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Departments fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"departmentCode\": \"D001\",\n      \"departmentName\": \"Information Technology\",\n      \"description\": \"IT and software development\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 2,\n      \"departmentCode\": \"D002\",\n      \"departmentName\": \"Human Resources\",\n      \"description\": \"HR management and recruitment\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 3,\n      \"departmentCode\": \"D003\",\n      \"departmentName\": \"Finance\",\n      \"description\": \"Finance and accounting\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 4,\n      \"departmentCode\": \"D004\",\n      \"departmentName\": \"Marketing\",\n      \"description\": \"Marketing and promotion\",\n      \"status\": \"INACTIVE\"\n    }\n  ]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "431f9612-b34e-4c81-a84c-15256e11e387",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "designations",
+      "responses": [
+        {
+          "uuid": "83ca8daa-ba5f-4abd-a7b6-2e7627744c15",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Designations fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"designationCode\": \"DS001\",\n      \"designationName\": \"Frontend Developer\",\n      \"department\": \"Information Technology\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 2,\n      \"designationCode\": \"DS002\",\n      \"designationName\": \"Backend Developer\",\n      \"department\": \"Information Technology\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 3,\n      \"designationCode\": \"DS003\",\n      \"designationName\": \"HR Executive\",\n      \"department\": \"Human Resources\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 4,\n      \"designationCode\": \"DS004\",\n      \"designationName\": \"Accountant\",\n      \"department\": \"Finance\",\n      \"status\": \"ACTIVE\"\n    },\n    {\n      \"id\": 5,\n      \"designationCode\": \"DS005\",\n      \"designationName\": \"Marketing Manager\",\n      \"department\": \"Marketing\",\n      \"status\": \"INACTIVE\"\n    }\n  ]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "3097a5a4-6a7b-4a36-b021-7f49d2fc9a0a",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "attendance",
+      "responses": [
+        {
+          "uuid": "fcb31138-ec34-4dae-ba9e-2934411cfac2",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Attendance fetched successfully\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"employeeId\": \"EMP001\",\n      \"employeeName\": \"Rahul Sharma\",\n      \"date\": \"2026-11-23\",\n      \"checkIn\": \"09:15 AM\",\n      \"checkOut\": \"06:10 PM\",\n      \"status\": \"PRESENT\"\n    },\n    {\n      \"id\": 2,\n      \"employeeId\": \"EMP002\",\n      \"employeeName\": \"Priya Singh\",\n      \"date\": \"2026-11-23\",\n      \"checkIn\": \"09:30 AM\",\n      \"checkOut\": \"06:00 PM\",\n      \"status\": \"PRESENT\"\n    },\n    {\n      \"id\": 3,\n      \"employeeId\": \"EMP003\",\n      \"employeeName\": \"Amit Kumar\",\n      \"date\": \"2026-11-23\",\n      \"checkIn\": \"10:15 AM\",\n      \"checkOut\": \"-\",\n      \"status\": \"HALF_DAY\"\n    },\n    {\n      \"id\": 4,\n      \"employeeId\": \"EMP004\",\n      \"employeeName\": \"Neha Verma\",\n      \"date\": \"2026-11-23\",\n      \"checkIn\": \"-\",\n      \"checkOut\": \"-\",\n      \"status\": \"ABSENT\"\n    }\n  ]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "f0453af5-e9b5-440e-bfe9-cc3121aca133",
+      "type": "http",
+      "documentation": "",
+      "method": "post",
+      "endpoint": "attendance",
+      "responses": [
+        {
+          "uuid": "3b3f13a5-7993-4141-84cc-a9bee6ac38c1",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Attendance added successfully\",\n  \"data\": {\n    \"id\": 5,\n    \"employeeId\": \"{{body 'employeeId'}}\",\n    \"employeeName\": \"{{body 'employeeId'}}\",\n    \"date\": \"{{body 'date'}}\",\n    \"checkIn\": \"{{body 'checkIn'}}\",\n    \"checkOut\": \"{{body 'checkOut'}}\",\n    \"status\": \"{{body 'status'}}\"\n  }\n}",
+          "latency": 0,
+          "statusCode": 201,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     }
   ],
   "rootChildren": [
@@ -289,6 +413,22 @@
     {
       "type": "route",
       "uuid": "fe7a1c37-5aa1-44b1-a748-d8324ffdf62a"
+    },
+    {
+      "type": "route",
+      "uuid": "ed6a3255-038e-4057-81fb-e03e19d340bf"
+    },
+    {
+      "type": "route",
+      "uuid": "431f9612-b34e-4c81-a84c-15256e11e387"
+    },
+    {
+      "type": "route",
+      "uuid": "3097a5a4-6a7b-4a36-b021-7f49d2fc9a0a"
+    },
+    {
+      "type": "route",
+      "uuid": "f0453af5-e9b5-440e-bfe9-cc3121aca133"
     }
   ],
   "proxyMode": false,
