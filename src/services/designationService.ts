@@ -1,5 +1,6 @@
 
 import api from "./api";
+import { applyApprovedRequestToRecords } from "../utils/requestStorage";
 
 // Designation data structure
 export interface Designation {
@@ -21,5 +22,8 @@ export interface DesignationResponse {
 export const getDesignations = async (): Promise<DesignationResponse> => {
   const response = await api.get<DesignationResponse>("/designations");
 
-  return response.data;
+  return {
+    ...response.data,
+    data: applyApprovedRequestToRecords("DESIGNATIONS", response.data.data || []),
+  };
 };

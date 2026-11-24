@@ -1,5 +1,6 @@
 
 import api from "./api";
+import { applyApprovedRequestToRecords } from "../utils/requestStorage";
 
 // Employee Type ka data structure
 export interface EmployeeType {
@@ -21,5 +22,11 @@ export interface EmployeeTypeResponse {
 export const getEmployeeTypes = async (): Promise<EmployeeTypeResponse> => {
   const response = await api.get<EmployeeTypeResponse>("/employee-types");
 
-  return response.data;
+  return {
+    ...response.data,
+    data: applyApprovedRequestToRecords(
+      "EMPLOYEE_TYPES",
+      response.data.data || []
+    ),
+  };
 };

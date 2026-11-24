@@ -20,6 +20,7 @@ import EmployeeTypes from "./pages/EmployeeTypes";
 import Departments from "./pages/Departments";
 import Designations from "./pages/Designations";
 import Attendance from "./pages/Attendance";
+import MakerChecker from "./pages/MakerChecker";
 
 
 function App() {
@@ -54,7 +55,7 @@ function App() {
               element={<Employees />}
             />
 
-            {/* Maker and Checker Only */}
+            {/* All roles may view pending requests; only Checker can review. */}
             <Route
               element={
                 <RoleBasedRoute
@@ -64,11 +65,7 @@ function App() {
             >
               <Route
                 path="/maker-checker"
-                element={
-                  <div>
-                    Maker-Checker Module - Coming Soon
-                  </div>
-                }
+                element={<MakerChecker />}
               />
             </Route>
 

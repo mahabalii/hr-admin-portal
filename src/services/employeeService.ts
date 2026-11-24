@@ -1,5 +1,6 @@
 
 import api from "./api";
+import { applyApprovedRequestToRecords } from "../utils/requestStorage";
 
 // Employee data structure
 export interface Employee {
@@ -33,7 +34,10 @@ export interface SingleEmployeeResponse {
 // Get all employees
 export const getEmployees = async (): Promise<EmployeeResponse> => {
   const response = await api.get<EmployeeResponse>("/employees");
-  return response.data;
+  return {
+    ...response.data,
+    data: applyApprovedRequestToRecords("EMPLOYEES", response.data.data || []),
+  };
 };
 
 // Get employee by ID

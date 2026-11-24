@@ -1,5 +1,5 @@
-
 import api from "./api";
+import { applyApprovedRequestToRecords } from "../utils/requestStorage";
 
 // Attendance data structure
 export interface Attendance {
@@ -19,36 +19,14 @@ export interface AttendanceResponse {
   data: Attendance[];
 }
 
-// New attendance input structure
-export interface CreateAttendancePayload {
-  employeeId: string;
-  date: string;
-  checkIn: string;
-  checkOut: string;
-  status: "PRESENT" | "ABSENT" | "HALF_DAY";
-}
-
-// Single attendance API response
-export interface SingleAttendanceResponse {
-  success: boolean;
-  message: string;
-  data: Attendance;
-}
-
-// Fetch attendance records
+// Attendance records change only when an approved request is applied.
 export const getAttendance = async (): Promise<AttendanceResponse> => {
   const response = await api.get<AttendanceResponse>("/attendance");
-  return response.data;
-};
-
-// Add new attendance record
-export const createAttendance = async (
-  payload: CreateAttendancePayload
-): Promise<SingleAttendanceResponse> => {
-  const response = await api.post<SingleAttendanceResponse>(
-    "/attendance",
-    payload
-  );
-
-  return response.data;
+  return {
+    ...response.data,
+    data: applyApprovedRequestToRecords(
+      "ATTENDANCE",
+      response.data.data || []
+    ),
+  };
 };

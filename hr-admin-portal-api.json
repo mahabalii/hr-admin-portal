@@ -395,6 +395,130 @@
       "responseMode": null,
       "streamingMode": null,
       "streamingInterval": 0
+    },
+    {
+      "uuid": "8ea81c62-0a79-4fab-b000-c4705b303651",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "requests",
+      "responses": [
+        {
+          "uuid": "b22a237e-f54a-4b02-aceb-9be468b06672",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Requests fetched successfully\",\n  \"data\": []\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "8e28b238-2850-43d6-bbaa-96ba4b5a6362",
+      "type": "http",
+      "documentation": "",
+      "method": "post",
+      "endpoint": "requests",
+      "responses": [
+        {
+          "uuid": "0c911007-6dc9-4d1d-b161-c2794412decb",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Request submitted successfully\",\n  \"data\": {\n    \"id\": \"REQ001\",\n    \"status\": \"PENDING\"\n  }\n}",
+          "latency": 0,
+          "statusCode": 201,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "303e79ed-d975-4e71-bba9-99de6b5cd75f",
+      "type": "http",
+      "documentation": "",
+      "method": "patch",
+      "endpoint": "requests/:id/approve",
+      "responses": [
+        {
+          "uuid": "066ec52a-fdb3-4759-81ea-3d12a21f56e8",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Request approved successfully\",\n  \"data\": {\n    \"id\": \"REQ001\",\n    \"status\": \"APPROVED\",\n    \"remarks\": \"\"\n  }\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "f5d99877-65e8-44aa-bf54-2f4d9dbb8c02",
+      "type": "http",
+      "documentation": "",
+      "method": "patch",
+      "endpoint": "requests/:id/reject",
+      "responses": [
+        {
+          "uuid": "195a0b81-c2e9-410e-85b3-d0bb51003758",
+          "body": "{\n  \"success\": true,\n  \"message\": \"Request rejected successfully\",\n  \"data\": {\n    \"id\": \"REQ001\",\n    \"status\": \"REJECTED\",\n    \"remarks\": \"Please correct the submitted details.\"\n  }\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     }
   ],
   "rootChildren": [
@@ -429,6 +553,22 @@
     {
       "type": "route",
       "uuid": "f0453af5-e9b5-440e-bfe9-cc3121aca133"
+    },
+    {
+      "type": "route",
+      "uuid": "8ea81c62-0a79-4fab-b000-c4705b303651"
+    },
+    {
+      "type": "route",
+      "uuid": "8e28b238-2850-43d6-bbaa-96ba4b5a6362"
+    },
+    {
+      "type": "route",
+      "uuid": "303e79ed-d975-4e71-bba9-99de6b5cd75f"
+    },
+    {
+      "type": "route",
+      "uuid": "f5d99877-65e8-44aa-bf54-2f4d9dbb8c02"
     }
   ],
   "proxyMode": false,

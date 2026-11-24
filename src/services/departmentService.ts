@@ -1,5 +1,6 @@
 
 import api from "./api";
+import { applyApprovedRequestToRecords } from "../utils/requestStorage";
 
 // Department ka data structure
 export interface Department {
@@ -21,5 +22,8 @@ export interface DepartmentResponse {
 export const getDepartments = async (): Promise<DepartmentResponse> => {
   const response = await api.get<DepartmentResponse>("/departments");
 
-  return response.data;
+  return {
+    ...response.data,
+    data: applyApprovedRequestToRecords("DEPARTMENTS", response.data.data || []),
+  };
 };

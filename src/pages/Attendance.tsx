@@ -1,313 +1,304 @@
 
-import { useEffect, useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
-import { Search, CalendarCheck, Plus, X } from "lucide-react";
-import { toast } from "react-toastify";
+import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
+import {
+  Search,
+  CalendarCheck,
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+} from "lucide-react";
+import { toast } from "react-toastify";
 
+import type { RootState } from "../store/store";
 import {
   getAttendance,
-  createAttendance,
-  type Attendance as AttendanceRecord,
+  type Attendance,
 } from "../services/attendanceService";
-
 import {
   getEmployees,
   type Employee,
 } from "../services/employeeService";
+import {
+  getLocalRequestNotice,
+  submitAndStoreRequest,
+} from "../utils/requestStorage";
 
-import type { RootState } from "../store/store";
+import "../App.css";
 
 type AttendanceStatus = "PRESENT" | "ABSENT" | "HALF_DAY";
+type AttendanceAction = "CREATE" | "UPDATE";
 
-const getToday = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
+interface AttendanceForm {
+  employeeId: string;
+  date: string;
+  checkIn: string;
+  checkOut: string;
+  status: AttendanceStatus;
+}
 
-  return `${year}-${month}-${day}`;
+const emptyForm: AttendanceForm = {
+  employeeId: "",
+  date: "",
+  checkIn: "",
+  checkOut: "",
+  status: "PRESENT",
 };
 
-// Normalize date so YYYY-MM-DD and ISO date strings compare correctly.
-const normalizeDate = (date: string) => {
-  return String(date || "").slice(0, 10);
-};
+const ITEMS_PER_PAGE = 5;
 
-function Attendance() {
+function AttendancePage() {
   const user = useSelector((state: RootState) => state.auth.user);
-  const isCommon = user?.role === "COMMON";
 
+
+  const isMaker = user?.role === "MAKER";
+  const canAddAttendance = isMaker || user?.role === "COMMON";
+
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
 
-  const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [formLoading, setFormLoading] = useState(false);
+  const [action, setAction] = useState<AttendanceAction>("CREATE");
+  const [selectedAttendance, setSelectedAttendance] =
+    useState<Attendance | null>(null);
+  const [form, setForm] = useState<AttendanceForm>(emptyForm);
 
-  const [formData, setFormData] = useState({
-    employeeId: "",
-    date: getToday(),
-    checkIn: "",
-    checkOut: "",
-    status: "PRESENT" as AttendanceStatus,
-  });
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
-  // Fetch attendance records
+  // Fetch Attendance and Employees
   useEffect(() => {
-    const fetchAttendance = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await getAttendance();
-        setAttendance(response.data || []);
-      } catch (error) {
-        console.error("Attendance fetch error:", error);
-        setError("Failed to load attendance. Please try again.");
+        const [attendanceResponse, employeeResponse] =
+          await Promise.all([
+            getAttendance(),
+            getEmployees(),
+          ]);
+
+        setAttendance(attendanceResponse.data || []);
+        setEmployees(employeeResponse.data || []);
+      } catch (err) {
+        console.error("Attendance API Error:", err);
+        setError("Unable to load attendance records. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAttendance();
+    fetchData();
   }, []);
 
-  // Fetch employees for the dropdown
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const response = await getEmployees();
-        setEmployees(response.data || []);
-      } catch (error) {
-        console.error("Employee fetch error:", error);
-        toast.error("Unable to load employees.");
-      }
-    };
+  // Search
+  const filteredAttendance = attendance.filter((item) => {
+    const search = searchTerm.toLowerCase();
 
-    fetchEmployees();
-  }, []);
-
-  // Search and filters
-  const filteredAttendance = attendance.filter((record) => {
-    const matchesSearch =
-      `${record.employeeId} ${record.employeeName}`
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-    const matchesDate =
-      !dateFilter || normalizeDate(record.date) === dateFilter;
-
-    const matchesStatus =
-      statusFilter === "ALL" || record.status === statusFilter;
-
-    return matchesSearch && matchesDate && matchesStatus;
+    return (
+      item.employeeId.toLowerCase().includes(search) ||
+      item.employeeName.toLowerCase().includes(search) ||
+      item.date.toLowerCase().includes(search) ||
+      item.status.toLowerCase().includes(search)
+    );
   });
 
   // Pagination
   const totalPages = Math.ceil(
-    filteredAttendance.length / itemsPerPage
+    filteredAttendance.length / ITEMS_PER_PAGE
   );
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  const currentAttendance = filteredAttendance.slice(
+  const currentItems = filteredAttendance.slice(
     startIndex,
-    startIndex + itemsPerPage
+    startIndex + ITEMS_PER_PAGE
   );
 
-  // Handle form input changes
+  // Open Add Form
+  const handleAdd = () => {
+    setAction("CREATE");
+    setSelectedAttendance(null);
+    setForm(emptyForm);
+    setShowForm(true);
+  };
+
+  const handleEdit = (record: Attendance) => {
+    setAction("UPDATE");
+    setSelectedAttendance(record);
+    setForm({
+      employeeId: record.employeeId,
+      date: record.date,
+      checkIn: record.checkIn,
+      checkOut: record.checkOut,
+      status: record.status,
+    });
+    setShowForm(true);
+  };
+
+  // Close Form
+  const closeForm = () => {
+    setShowForm(false);
+    setSelectedAttendance(null);
+    setAction("CREATE");
+    setForm(emptyForm);
+  };
+
+  // Input Change
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    field: keyof AttendanceForm,
+    value: string
   ) => {
-    const { name, value } = e.target;
-
-    setFormError("");
-
-    setFormData((previous) => ({
+    setForm((previous) => ({
       ...previous,
-      [name]: value,
-      ...(name === "status" && value === "ABSENT"
-        ? { checkIn: "", checkOut: "" }
-        : {}),
+      [field]: value,
     }));
   };
 
-  // Reset form
-  const resetForm = () => {
-    setFormData({
-      employeeId: "",
-      date: getToday(),
-      checkIn: "",
-      checkOut: "",
-      status: "PRESENT",
-    });
+  const handleDelete = async (record: Attendance) => {
+    if (!user || !isMaker) return;
 
-    setFormError("");
+    const confirmed = window.confirm(
+      `Submit a removal request for ${record.employeeName}'s attendance on ${record.date}?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const result = await submitAndStoreRequest({
+        module: "ATTENDANCE",
+        action: "DELETE",
+        recordId: record.id,
+        requestedBy: user.username,
+        oldData: {
+          employeeId: record.employeeId,
+          employeeName: record.employeeName,
+          date: record.date,
+          checkIn: record.checkIn,
+          checkOut: record.checkOut,
+          status: record.status,
+        },
+      });
+
+      toast.success(
+        result.apiSynced
+          ? "Attendance removal request submitted!"
+          : getLocalRequestNotice(result.apiAvailable)
+      );
+    } catch (error) {
+      console.error("Attendance removal request error:", error);
+      toast.error("Unable to submit attendance removal request.");
+    }
   };
 
-  // Close form
-  const closeForm = () => {
-    if (saving) return;
+  // COMMON adds directly; MAKER submits create/update for checker approval.
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    setShowForm(false);
-    resetForm();
-  };
+    if (!user) return;
 
-  // Submit attendance
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (saving) return;
-
-    setFormError("");
-
-    // Validate employee selection
     const selectedEmployee = employees.find(
-      (employee) =>
-        employee.employeeId.trim().toLowerCase() ===
-        formData.employeeId.trim().toLowerCase()
+      (employee) => employee.employeeId === form.employeeId
     );
 
     if (!selectedEmployee) {
-      const message = "Please select a valid employee.";
-      setFormError(message);
-      toast.error(message);
+      toast.error("Please select a valid employee.");
       return;
     }
 
-    // Validate date
-    if (!formData.date) {
-      const message = "Please select an attendance date.";
-      setFormError(message);
-      toast.error(message);
-      return;
-    }
-    // Validate future date
-    if (formData.date > getToday()) {
-    const message = "Future attendance date is not allowed.";
-    setFormError(message);
-    toast.error(message);
-    return;
-    }
+    const duplicate = attendance.some(
+      (item) =>
+        item.employeeId === form.employeeId &&
+        item.date === form.date &&
+        item.id !== selectedAttendance?.id
+    );
 
-    // Duplicate validation: same employee + same date
-    const duplicateAttendance = attendance.some((record) => {
-      const existingEmployeeId = String(record.employeeId || "")
-        .trim()
-        .toLowerCase();
-
-      const selectedEmployeeId = formData.employeeId
-        .trim()
-        .toLowerCase();
-
-      const existingDate = normalizeDate(record.date);
-      const selectedDate = normalizeDate(formData.date);
-
-      return (
-        existingEmployeeId === selectedEmployeeId &&
-        existingDate === selectedDate
-      );
-    });
-
-    if (duplicateAttendance) {
-      const message =
-        "Attendance already exists for this employee on this date.";
-
-      setFormError(message);
-      toast.error(message);
+    if (duplicate) {
+      toast.error("Attendance already exists for this employee and date.");
       return;
     }
 
-    // Check-in validation
     if (
-      formData.status !== "ABSENT" &&
-      !formData.checkIn
+      form.status !== "ABSENT" &&
+      form.checkIn &&
+      form.checkOut &&
+      form.checkOut <= form.checkIn
     ) {
-      const message = "Please enter check-in time.";
-      setFormError(message);
-      toast.error(message);
-      return;
-    }
-
-    // Check-out validation
-    if (
-      formData.status !== "ABSENT" &&
-      formData.checkIn &&
-      formData.checkOut &&
-      formData.checkOut <= formData.checkIn
-    ) {
-      const message = "Check-out must be later than check-in.";
-      setFormError(message);
-      toast.error(message);
+      toast.error("Check-out time must be after check-in time.");
       return;
     }
 
     try {
-      setSaving(true);
+      setFormLoading(true);
 
-      const response = await createAttendance(formData);
-
-      const newAttendance: AttendanceRecord = {
-        ...response.data,
-        employeeId: selectedEmployee.employeeId,
+      const newData = {
+        employeeId: form.employeeId,
+        date: form.date,
+        checkIn: form.status === "ABSENT" ? "" : form.checkIn,
+        checkOut: form.status === "ABSENT" ? "" : form.checkOut,
+        status: form.status,
         employeeName: `${selectedEmployee.firstName} ${selectedEmployee.lastName}`,
       };
 
-      // Update table only after successful API response
-      setAttendance((previous) => [
-        ...previous,
-        newAttendance,
-      ]);
+      if (!canAddAttendance || (action === "UPDATE" && !isMaker)) return;
 
+      const result = await submitAndStoreRequest({
+        module: "ATTENDANCE",
+        action,
+        requestedBy: user.username,
+        ...(action === "UPDATE" && selectedAttendance
+          ? {
+              recordId: selectedAttendance.id,
+              oldData: {
+                employeeId: selectedAttendance.employeeId,
+                employeeName: selectedAttendance.employeeName,
+                date: selectedAttendance.date,
+                checkIn: selectedAttendance.checkIn,
+                checkOut: selectedAttendance.checkOut,
+                status: selectedAttendance.status,
+              },
+            }
+          : {}),
+        newData,
+      });
       toast.success(
-        response.message || "Attendance added successfully."
+        result.apiSynced
+          ? action === "CREATE"
+            ? "Attendance request submitted for approval!"
+            : "Attendance update request submitted for approval!"
+          : getLocalRequestNotice(result.apiAvailable)
       );
 
-      setShowForm(false);
-      resetForm();
-      setCurrentPage(1);
-    } catch (error) {
-      console.error("Attendance API Error:", error);
-
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unable to add attendance.";
-
-      setFormError(message);
-      toast.error(message);
+      closeForm();
+    } catch (err) {
+      console.error("Attendance request error:", err);
+      toast.error("Unable to submit attendance request.");
     } finally {
-      setSaving(false);
+      setFormLoading(false);
     }
   };
 
+  if (!user) return <p>Please login to continue.</p>;
+
   return (
-    <div className="attendance-page">
+    <div className="employee-types-page">
+
+      {/* Page Heading */}
       <div className="page-heading">
         <div>
           <h1>Attendance</h1>
-          <p>View and manage employee attendance.</p>
+          <p>View and manage employee attendance records</p>
         </div>
 
-        {isCommon && (
+        {canAddAttendance && (
           <button
-            type="button"
-            className="attendance-add-button"
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
+            className="employee-add-btn"
+            onClick={handleAdd}
+            disabled={loading}
           >
             <Plus size={18} />
             Add Attendance
@@ -315,229 +306,140 @@ function Attendance() {
         )}
       </div>
 
-      {showForm && (
-        <div className="attendance-form-card">
-          <div className="attendance-form-heading">
-            <h2>Add Attendance</h2>
+      {/* Search and Count */}
+      <div className="employee-types-toolbar">
 
-            <button
-              type="button"
-              onClick={closeForm}
-              aria-label="Close form"
-              disabled={saving}
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="attendance-form-grid">
-              <div className="attendance-form-field">
-                <label>Employee *</label>
-
-                <select
-                  name="employeeId"
-                  value={formData.employeeId}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Employee</option>
-
-                  {employees.map((employee) => (
-                    <option
-                      key={employee.id}
-                      value={employee.employeeId}
-                    >
-                      {employee.employeeId} - {employee.firstName}{" "}
-                      {employee.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="attendance-form-field">
-                <label>Date *</label>
-
-                <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    max={getToday()}
-                    required
-                 />
-              </div>
-
-              <div className="attendance-form-field">
-                <label>Check In</label>
-
-                <input
-                  type="time"
-                  name="checkIn"
-                  value={formData.checkIn}
-                  onChange={handleChange}
-                  disabled={formData.status === "ABSENT"}
-                  required={formData.status !== "ABSENT"}
-                />
-              </div>
-
-              <div className="attendance-form-field">
-                <label>Check Out</label>
-
-                <input
-                  type="time"
-                  name="checkOut"
-                  value={formData.checkOut}
-                  onChange={handleChange}
-                  disabled={formData.status === "ABSENT"}
-                />
-              </div>
-
-              <div className="attendance-form-field">
-                <label>Status *</label>
-
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="PRESENT">Present</option>
-                  <option value="ABSENT">Absent</option>
-                  <option value="HALF_DAY">Half Day</option>
-                </select>
-              </div>
-            </div>
-
-            {formError && (
-              <p
-                role="alert"
-                style={{
-                  color: "#dc2626",
-                  marginTop: "12px",
-                  fontSize: "14px",
-                }}
-              >
-                {formError}
-              </p>
-            )}
-
-            <div className="attendance-form-actions">
-              <button
-                type="button"
-                className="attendance-cancel-button"
-                onClick={closeForm}
-                disabled={saving}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="attendance-save-button"
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save Attendance"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <div className="attendance-toolbar">
-        <div className="attendance-search">
+        <div className="employee-types-search">
           <Search size={18} />
 
           <input
             type="text"
-            placeholder="Search employee..."
-            value={search}
+            placeholder="Search attendance..."
+            value={searchTerm}
             onChange={(e) => {
-              setSearch(e.target.value);
+              setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
           />
         </div>
 
-        <input
-          type="date"
-          className="attendance-filter"
-          value={dateFilter}
-          onChange={(e) => {
-            setDateFilter(e.target.value);
-            setCurrentPage(1);
-          }}
-        />
+        <div className="employee-types-count">
+          <CalendarCheck size={18} />
 
-        <select
-          className="attendance-filter"
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          <option value="ALL">All Status</option>
-          <option value="PRESENT">Present</option>
-          <option value="ABSENT">Absent</option>
-          <option value="HALF_DAY">Half Day</option>
-        </select>
-
-        <div className="attendance-count">
-          Total Records: {filteredAttendance.length}
+          <span>
+            Total Records: <strong>{filteredAttendance.length}</strong>
+          </span>
         </div>
+
       </div>
 
-      {loading ? (
-        <div className="data-message">
+      {/* Loading */}
+      {loading && (
+        <div className="table-message">
           Loading attendance...
         </div>
-      ) : error ? (
-        <div className="data-message error-message">
+      )}
+
+      {/* Error */}
+      {!loading && error && (
+        <div className="table-error">
           {error}
         </div>
-      ) : filteredAttendance.length === 0 ? (
-        <div className="data-message">
-          <CalendarCheck size={30} />
-          <p>No attendance records found.</p>
-        </div>
-      ) : (
-        <>
-          <div className="attendance-table-wrapper">
-            <table className="attendance-table">
-              <thead>
-                <tr>
-                  <th>Employee ID</th>
-                  <th>Employee Name</th>
-                  <th>Date</th>
-                  <th>Check In</th>
-                  <th>Check Out</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
+      )}
 
-              <tbody>
-                {currentAttendance.map((record) => (
-                  <tr key={record.id}>
-                    <td>{record.employeeId}</td>
-                    <td>{record.employeeName}</td>
-                    <td>{normalizeDate(record.date)}</td>
-                    <td>{record.checkIn || "-"}</td>
-                    <td>{record.checkOut || "-"}</td>
+      {/* Attendance Table */}
+      {!loading && !error && (
+        <div className="employee-types-table-wrapper">
+
+          <table className="employee-types-table">
+
+            <thead>
+              <tr>
+                <th>Employee ID</th>
+                <th>Employee Name</th>
+                <th>Date</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Status</th>
+                {isMaker && <th>Actions</th>}
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentItems.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.employeeId}</td>
+                  <td>{item.employeeName}</td>
+                  <td>{item.date}</td>
+                  <td>{item.checkIn || "-"}</td>
+                  <td>{item.checkOut || "-"}</td>
+
+                  <td>
+                    <span
+                      className={
+                        item.status === "PRESENT"
+                          ? "status-active"
+                          : "status-inactive"
+                      }
+                    >
+                      {item.status.replace("_", " ")}
+                    </span>
+                  </td>
+
+                  {isMaker && (
                     <td>
-                      <span
-                        className={`attendance-status status-${record.status.toLowerCase()}`}
-                      >
-                        {record.status.replace("_", " ")}
-                      </span>
+                      <div className="employee-actions">
+                        <button
+                          type="button"
+                          className="employee-edit-btn"
+                          title="Submit attendance update for approval"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className="employee-delete-btn"
+                          title="Submit attendance removal for approval"
+                          onClick={() => void handleDelete(item)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tr>
+              ))}
 
-          <div className="pagination">
+              {filteredAttendance.length === 0 && (
+                <tr>
+                  <td colSpan={isMaker ? 7 : 6} className="table-message">
+                    No attendance records found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+
+          </table>
+
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && !error && (
+        <div className="employees-pagination">
+          <span>
+            Showing {filteredAttendance.length === 0 ? 0 : startIndex + 1}
+            {" - "}
+            {Math.min(
+              startIndex + ITEMS_PER_PAGE,
+              filteredAttendance.length
+            )}
+            {" of "}
+            {filteredAttendance.length}
+          </span>
+
+          <div>
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((page) => page - 1)}
@@ -546,22 +448,161 @@ function Attendance() {
             </button>
 
             <span>
-              Page {currentPage} of {totalPages}
+              {currentPage} / {Math.max(totalPages, 1)}
             </span>
 
             <button
               disabled={
-                totalPages === 0 || currentPage >= totalPages
+                currentPage >= totalPages || totalPages === 0
               }
               onClick={() => setCurrentPage((page) => page + 1)}
             >
               Next
             </button>
           </div>
-        </>
+        </div>
       )}
+
+      {/* Add / Update Attendance Modal */}
+      {showForm && (
+        <div className="employee-modal-overlay">
+          <div className="employee-modal">
+
+            <div className="employee-modal-header">
+              <div>
+                <h2>
+                  {action === "CREATE" ? "Add Attendance" : "Update Attendance"}
+                </h2>
+                <p>
+                  This attendance change will be sent to Checker for approval.
+                </p>
+              </div>
+
+              <button
+                className="employee-modal-close"
+                onClick={closeForm}
+                type="button"
+              >
+                <X size={21} />
+              </button>
+            </div>
+
+            <form
+              className="employee-modal-form"
+              onSubmit={handleSubmit}
+            >
+              <div className="employee-modal-grid">
+
+                <div className="employee-form-field">
+                  <label>Employee</label>
+
+                  <select
+                    required
+                    value={form.employeeId}
+                    onChange={(e) =>
+                      handleChange("employeeId", e.target.value)
+                    }
+                  >
+                    <option value="">Select Employee</option>
+
+                    {employees.map((employee) => (
+                      <option
+                        key={employee.id}
+                        value={employee.employeeId}
+                      >
+                        {employee.employeeId} - {employee.firstName}{" "}
+                        {employee.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="employee-form-field">
+                  <label>Date</label>
+
+                  <input
+                    type="date"
+                    required
+                    value={form.date}
+                    onChange={(e) =>
+                      handleChange("date", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="employee-form-field">
+                  <label>Check In</label>
+
+                  <input
+                    type="time"
+                    disabled={form.status === "ABSENT"}
+                    required={form.status !== "ABSENT"}
+                    value={form.checkIn}
+                    onChange={(e) =>
+                      handleChange("checkIn", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="employee-form-field">
+                  <label>Check Out</label>
+
+                  <input
+                    type="time"
+                    disabled={form.status === "ABSENT"}
+                    required={form.status !== "ABSENT"}
+                    value={form.checkOut}
+                    onChange={(e) =>
+                      handleChange("checkOut", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="employee-form-field">
+                  <label>Status</label>
+
+                  <select
+                    value={form.status}
+                    onChange={(e) =>
+                      handleChange("status", e.target.value)
+                    }
+                  >
+                    <option value="PRESENT">Present</option>
+                    <option value="ABSENT">Absent</option>
+                    <option value="HALF_DAY">Half Day</option>
+                  </select>
+                </div>
+
+              </div>
+
+              <div className="employee-modal-actions">
+                <button
+                  type="button"
+                  className="employee-cancel-btn"
+                  onClick={closeForm}
+                  disabled={formLoading}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="employee-submit-btn"
+                  disabled={formLoading}
+                >
+                  {formLoading
+                    ? "Submitting..."
+                    : "Submit for Approval"}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
 
-export default Attendance;
+export default AttendancePage;
