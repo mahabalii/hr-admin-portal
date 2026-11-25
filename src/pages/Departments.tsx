@@ -1,4 +1,3 @@
-
 import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -16,10 +15,7 @@ import {
   getDepartments,
   type Department,
 } from "../services/departmentService";
-import {
-  getLocalRequestNotice,
-  submitAndStoreRequest,
-} from "../utils/requestStorage";
+import { submitAndStoreRequest } from "../utils/requestStorage";
 
 import "../App.css";
 
@@ -199,13 +195,12 @@ function Departments() {
         },
       };
 
-      const result = await submitAndStoreRequest(payload);
+      await submitAndStoreRequest(payload);
+
       toast.success(
-        result.apiSynced
-          ? action === "CREATE"
-            ? "Department creation request submitted!"
-            : "Department update request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
+        action === "CREATE"
+          ? "Department creation request submitted!"
+          : "Department update request submitted!"
       );
 
       closeForm();
@@ -241,12 +236,8 @@ function Departments() {
         },
       };
 
-      const result = await submitAndStoreRequest(payload);
-      toast.success(
-        result.apiSynced
-          ? "Department removal request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
-      );
+      await submitAndStoreRequest(payload);
+      toast.success("Department removal request submitted!");
     } catch (err) {
       console.error("Department deletion error:", err);
       toast.error("Unable to submit removal request.");

@@ -1,4 +1,3 @@
-
 import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -16,10 +15,7 @@ import {
   getEmployeeTypes,
   type EmployeeType,
 } from "../services/employeeTypeService";
-import {
-  getLocalRequestNotice,
-  submitAndStoreRequest,
-} from "../utils/requestStorage";
+import { submitAndStoreRequest } from "../utils/requestStorage";
 
 import "../App.css";
 
@@ -190,13 +186,12 @@ function EmployeeTypes() {
         },
       };
 
-      const result = await submitAndStoreRequest(payload);
+      await submitAndStoreRequest(payload);
+
       toast.success(
-        result.apiSynced
-          ? action === "CREATE"
-            ? "Employee Type creation request submitted!"
-            : "Employee Type update request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
+        action === "CREATE"
+          ? "Employee Type creation request submitted!"
+          : "Employee Type update request submitted!"
       );
 
       closeForm();
@@ -232,12 +227,8 @@ function EmployeeTypes() {
         },
       };
 
-      const result = await submitAndStoreRequest(payload);
-      toast.success(
-        result.apiSynced
-          ? "Employee Type removal request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
-      );
+      await submitAndStoreRequest(payload);
+      toast.success("Employee Type removal request submitted!");
     } catch (err) {
       console.error("Employee Type deletion error:", err);
       toast.error("Unable to submit removal request.");

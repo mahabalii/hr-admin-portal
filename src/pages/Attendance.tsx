@@ -20,10 +20,7 @@ import {
   getEmployees,
   type Employee,
 } from "../services/employeeService";
-import {
-  getLocalRequestNotice,
-  submitAndStoreRequest,
-} from "../utils/requestStorage";
+import { submitAndStoreRequest } from "../utils/requestStorage";
 
 import "../App.css";
 
@@ -48,9 +45,13 @@ const emptyForm: AttendanceForm = {
 
 const ITEMS_PER_PAGE = 5;
 
+const getTodayDate = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+};
+
 function AttendancePage() {
   const user = useSelector((state: RootState) => state.auth.user);
-
 
   const isMaker = user?.role === "MAKER";
   const canAddAttendance = isMaker || user?.role === "COMMON";
@@ -169,7 +170,7 @@ function AttendancePage() {
     if (!confirmed) return;
 
     try {
-      const result = await submitAndStoreRequest({
+      await submitAndStoreRequest({
         module: "ATTENDANCE",
         action: "DELETE",
         recordId: record.id,
@@ -184,11 +185,7 @@ function AttendancePage() {
         },
       });
 
-      toast.success(
-        result.apiSynced
-          ? "Attendance removal request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
-      );
+      toast.success("Delete request submitted");
     } catch (error) {
       console.error("Attendance removal request error:", error);
       toast.error("Unable to submit attendance removal request.");
@@ -200,6 +197,11 @@ function AttendancePage() {
     event.preventDefault();
 
     if (!user) return;
+
+    if (form.date > getTodayDate()) {
+      toast.error("Future date attendance is not allowed.");
+      return;
+    }
 
     const selectedEmployee = employees.find(
       (employee) => employee.employeeId === form.employeeId
@@ -246,7 +248,7 @@ function AttendancePage() {
 
       if (!canAddAttendance || (action === "UPDATE" && !isMaker)) return;
 
-      const result = await submitAndStoreRequest({
+      await submitAndStoreRequest({
         module: "ATTENDANCE",
         action,
         requestedBy: user.username,
@@ -265,12 +267,11 @@ function AttendancePage() {
           : {}),
         newData,
       });
+
       toast.success(
-        result.apiSynced
-          ? action === "CREATE"
-            ? "Attendance request submitted for approval!"
-            : "Attendance update request submitted for approval!"
-          : getLocalRequestNotice(result.apiAvailable)
+        action === "CREATE"
+          ? "Attendance submitted"
+          : "Update request submitted"
       );
 
       closeForm();
@@ -523,6 +524,7 @@ function AttendancePage() {
                   <input
                     type="date"
                     required
+                    max={getTodayDate()}
                     value={form.date}
                     onChange={(e) =>
                       handleChange("date", e.target.value)

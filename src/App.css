@@ -1481,3 +1481,690 @@ body {
   margin: 0 0 24px;
   line-height: 1.5;
 }
+
+
+/* AUDIT STATUS FILTER */
+
+.audit-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.audit-status-select {
+  min-width: 165px;
+  padding: 11px 14px;
+  border: 1px solid #dce2eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #253247;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+}
+
+.audit-status-select:focus {
+  border-color: #2563eb;
+}
+
+/* AUDIT PAGINATION */
+
+.audit-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding: 15px 18px;
+  background: #fff;
+  border: 1px solid #e5eaf1;
+  border-radius: 9px;
+}
+
+.audit-pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.audit-page-size {
+  padding: 7px 10px;
+  border: 1px solid #dce2eb;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.audit-pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audit-page-button {
+  min-width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+
+.audit-page-button:hover:not(:disabled) {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.audit-page-button.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.audit-page-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .audit-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .audit-pagination-info {
+    flex-wrap: wrap;
+  }
+
+  .audit-pagination-buttons {
+    flex-wrap: wrap;
+  }
+
+  .audit-toolbar > * {
+    width: 100%;
+  }
+}
+
+/* ===== PROFESSIONAL AUDIT DETAILS MODAL ===== */
+
+.audit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.audit-modal {
+  width: min(900px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e5eaf1;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+.audit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 26px;
+  border-bottom: 1px solid #e9edf3;
+}
+
+.audit-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.audit-modal-title-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.audit-modal-title h2 {
+  margin: 0;
+  color: #17243a;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.audit-modal-title p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.audit-modal-close {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 9px;
+  background: #f1f5f9;
+  color: #475569;
+  cursor: pointer;
+}
+
+.audit-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.audit-modal-body {
+  padding: 24px 26px;
+  overflow-y: auto;
+}
+
+.audit-detail-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.audit-detail-label {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.audit-detail-status {
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.audit-detail-pending {
+  background: #fff7e6;
+  color: #b7791f;
+}
+
+.audit-detail-approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.audit-detail-rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.audit-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.audit-detail-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #e8edf4;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.audit-detail-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.audit-detail-card span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.audit-detail-card strong {
+  color: #1e293b;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.audit-data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.audit-data-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+}
+
+.audit-data-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.audit-old-heading {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.audit-new-heading {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.audit-data-heading span:last-child {
+  font-size: 10px;
+  letter-spacing: 0.7px;
+}
+
+.audit-data-panel pre {
+  max-height: 280px;
+  min-height: 90px;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  background: #fbfcfe;
+  color: #334155;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.audit-remarks-panel {
+  margin-top: 18px;
+  padding: 15px 17px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.audit-remarks-panel strong {
+  color: #334155;
+  font-size: 12px;
+}
+
+.audit-remarks-panel p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.audit-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 15px 26px;
+  border-top: 1px solid #e9edf3;
+}
+
+.audit-modal-footer button {
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.audit-modal-footer button:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 650px) {
+  .audit-modal-overlay {
+    padding: 10px;
+  }
+
+  .audit-modal {
+    max-height: 94vh;
+  }
+
+  .audit-modal-header,
+  .audit-modal-body {
+    padding: 17px;
+  }
+
+  .audit-detail-grid,
+  .audit-data-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-modal-footer {
+    padding: 13px 17px;
+  }
+}
+
+/* ===== AUDIT FIELD COMPARISON ===== */
+
+.audit-comparison {
+  margin-top: 8px;
+}
+
+.audit-comparison-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.audit-comparison-heading h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.audit-comparison-heading > span {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.audit-comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.audit-comparison-column {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+}
+
+.audit-comparison-column.old-column {
+  background: #fffaf5;
+}
+
+.audit-comparison-column.new-column {
+  background: #f6f9ff;
+}
+
+.audit-comparison-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 15px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.old-column .audit-comparison-title {
+  color: #c2410c;
+  background: #fff1e5;
+  border-bottom: 1px solid #fed7aa;
+}
+
+.new-column .audit-comparison-title {
+  color: #1d4ed8;
+  background: #eaf2ff;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+.audit-comparison-title small {
+  font-size: 10px;
+  letter-spacing: 0.7px;
+}
+
+.audit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  min-height: 62px;
+}
+
+.audit-field:last-child {
+  border-bottom: 0;
+}
+
+.audit-field > span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.audit-field > strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #26364d;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.audit-field-changed {
+  background: rgba(219, 234, 254, 0.45);
+}
+
+.audit-changed-label {
+  padding: 3px 7px;
+  border-radius: 20px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.audit-action-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+}
+
+.audit-no-data {
+  padding: 22px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 650px) {
+  .audit-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-comparison-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* Maker-Checker modal action buttons fix */
+.employee-modal-actions .employee-delete-btn,
+.employee-modal-actions .employee-submit-btn,
+.employee-modal-actions .employee-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  min-width: 90px;
+  height: 42px;
+  padding: 10px 18px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Reject button */
+.employee-modal-actions .employee-delete-btn {
+  background: #dc4545;
+  color: #ffffff;
+  border: 1px solid #dc4545;
+}
+
+.employee-modal-actions .employee-delete-btn:hover {
+  background: #bd3030;
+}
+
+/* Approve button */
+.employee-modal-actions .employee-submit-btn {
+  background: #1769aa;
+  color: #ffffff;
+  border: 1px solid #1769aa;
+}
+
+/* Cancel and Close button */
+.employee-modal-actions .employee-cancel-btn {
+  background: #ffffff;
+  color: #536477;
+  border: 1px solid #dce3eb;
+}
+
+/* Confirmation modal */
+.confirm-modal .employee-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 25px;
+  padding-top: 18px;
+}
+
+.confirm-modal .employee-modal-actions button {
+  width: auto;
+  min-width: 105px;
+  height: 42px;
+  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Confirm Reject */
+.confirm-modal .employee-delete-btn {
+  background: #dc4545;
+  color: #ffffff;
+  border: 1px solid #dc4545;
+}
+
+.confirm-modal .employee-delete-btn:hover {
+  background: #bd3030;
+}
+
+/* Confirm Approve */
+.confirm-modal .employee-submit-btn {
+  background: #1769aa;
+  color: #ffffff;
+  border: 1px solid #1769aa;
+}
+
+@media (max-width: 480px) {
+  .confirm-modal .employee-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-modal .employee-modal-actions button {
+    width: 100%;
+  }
+}
+
+/* Maker-Checker Request Details Footer Buttons */
+.audit-modal-footer {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap;
+}
+
+.audit-modal-footer button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  width: auto !important;
+  min-width: 105px !important;
+  height: 42px !important;
+  padding: 10px 18px !important;
+  border-radius: 7px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+}
+
+/* Close */
+.audit-modal-footer button:first-child {
+  background: #ffffff !important;
+  color: #536477 !important;
+  border: 1px solid #dce3eb !important;
+}
+
+/* Reject */
+.audit-modal-footer button:nth-child(2) {
+  background: #dc4545 !important;
+  color: #ffffff !important;
+  border: 1px solid #dc4545 !important;
+}
+
+/* Approve */
+.audit-modal-footer button:nth-child(3) {
+  background: #1769aa !important;
+  color: #ffffff !important;
+  border: 1px solid #1769aa !important;
+}
+
+.audit-modal-footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

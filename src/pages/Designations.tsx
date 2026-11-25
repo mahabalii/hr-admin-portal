@@ -1,4 +1,3 @@
-
 import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -17,10 +16,7 @@ import {
   type Designation,
 } from "../services/designationService";
 import { getDepartments, type Department } from "../services/departmentService";
-import {
-  getLocalRequestNotice,
-  submitAndStoreRequest,
-} from "../utils/requestStorage";
+import { submitAndStoreRequest } from "../utils/requestStorage";
 
 import "../App.css";
 
@@ -206,13 +202,12 @@ function Designations() {
         },
       };
 
-      const result = await submitAndStoreRequest(payload);
+      await submitAndStoreRequest(payload);
+
       toast.success(
-        result.apiSynced
-          ? action === "CREATE"
-            ? "Designation creation request submitted!"
-            : "Designation update request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
+        action === "CREATE"
+          ? "Designation creation request submitted!"
+          : "Designation update request submitted!"
       );
 
       closeForm();
@@ -248,12 +243,8 @@ function Designations() {
         },
       };
 
-      const result = await submitAndStoreRequest(payload);
-      toast.success(
-        result.apiSynced
-          ? "Designation removal request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
-      );
+      await submitAndStoreRequest(payload);
+      toast.success("Designation removal request submitted!");
     } catch (err) {
       console.error("Designation deletion error:", err);
       toast.error("Unable to submit removal request.");

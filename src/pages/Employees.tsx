@@ -8,10 +8,7 @@ import { getEmployees, type Employee } from "../services/employeeService";
 import { getDepartments, type Department } from "../services/departmentService";
 import { getDesignations, type Designation } from "../services/designationService";
 import { getEmployeeTypes, type EmployeeType } from "../services/employeeTypeService";
-import {
-  getLocalRequestNotice,
-  submitAndStoreRequest,
-} from "../utils/requestStorage";
+import { submitAndStoreRequest } from "../utils/requestStorage";
 
 type EmployeeAction = "CREATE" | "UPDATE" | "DELETE";
 type EmployeeForm = Omit<Employee, "id">;
@@ -126,24 +123,24 @@ function Employees() {
   };
 
   const handleEdit = (employee: Employee) => {
-  const employeeData: EmployeeForm = {
-    employeeId: employee.employeeId,
-    firstName: employee.firstName,
-    lastName: employee.lastName,
-    email: employee.email,
-    phone: employee.phone,
-    department: employee.department,
-    designation: employee.designation,
-    employeeType: employee.employeeType,
-    joiningDate: employee.joiningDate,
-    status: employee.status,
-  };
+    const employeeData: EmployeeForm = {
+      employeeId: employee.employeeId,
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      email: employee.email,
+      phone: employee.phone.replace(/^\+91/, "").replace(/\D/g, "").slice(0, 10),
+      department: employee.department,
+      designation: employee.designation,
+      employeeType: employee.employeeType,
+      joiningDate: employee.joiningDate,
+      status: employee.status,
+    };
 
-  setRequestAction("UPDATE");
-  setSelectedEmployee(employee);
-  setEmployeeForm(employeeData);
-  setShowForm(true);
-};
+    setRequestAction("UPDATE");
+    setSelectedEmployee(employee);
+    setEmployeeForm(employeeData);
+    setShowForm(true);
+  };
 
   const closeForm = () => {
     setShowForm(false);
@@ -159,9 +156,23 @@ function Employees() {
     }));
   };
 
+  const handlePhoneChange = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+
+    setEmployeeForm((previous) => ({
+      ...previous,
+      phone: digits,
+    }));
+  };
+
   const handleSubmitRequest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!user) return;
+
+    if (!/^\d{10}$/.test(employeeForm.phone)) {
+      toast.error("Please enter a valid 10 digit phone number.");
+      return;
+    }
 
     const duplicateId = employees.some(
       (employee) =>
@@ -199,16 +210,18 @@ function Employees() {
               },
             }
           : {}),
-        newData: { ...employeeForm },
+        newData: {
+          ...employeeForm,
+          phone: `+91${employeeForm.phone}`,
+        },
       };
 
-      const result = await submitAndStoreRequest(payload);
+      await submitAndStoreRequest(payload);
+
       toast.success(
-        result.apiSynced
-          ? requestAction === "CREATE"
-            ? "Employee creation request submitted!"
-            : "Employee update request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
+        requestAction === "CREATE"
+          ? "Employee creation request submitted!"
+          : "Employee update request submitted!"
       );
 
       closeForm();
@@ -248,12 +261,8 @@ function Employees() {
         },
       };
 
-      const result = await submitAndStoreRequest(payload);
-      toast.success(
-        result.apiSynced
-          ? "Employee removal request submitted!"
-          : getLocalRequestNotice(result.apiAvailable)
-      );
+      await submitAndStoreRequest(payload);
+      toast.success("Employee removal request submitted!");
     } catch (err) {
       console.error("Employee removal error:", err);
       toast.error("Unable to submit removal request.");
@@ -418,7 +427,7 @@ function Employees() {
         )}
       </div>
 
-            {!loading && !error && (
+      {!loading && !error && (
         <div className="employees-pagination">
           <span>
             Showing {filteredEmployees.length === 0 ? 0 : startIndex + 1}
@@ -513,15 +522,21 @@ function Employees() {
 
                 <div className="employee-form-field">
                   <label>Phone</label>
-                  <input
-                    type="tel"
-                    required
-                    value={employeeForm.phone}
-                    onChange={(event) =>
-                      handleInputChange("phone", event.target.value)
-                    }
-                    placeholder="Phone number"
-                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span>+91</span>
+                    <input
+                      type="tel"
+                      required
+                      maxLength={10}
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      value={employeeForm.phone}
+                      onChange={(event) =>
+                        handlePhoneChange(event.target.value)
+                      }
+                      placeholder="10 digit mobile number"
+                    />
+                  </div>
                 </div>
 
                 <div className="employee-form-field">

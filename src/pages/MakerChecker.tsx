@@ -9,24 +9,175 @@ import {
   CheckCircle,
   XCircle,
   X,
+  History,
+  User,
+  Layers,
+  Activity,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
 import type { RootState } from "../store/store";
 import {
+  getRequests,
   approveRequest,
   rejectRequest,
   type MakerRequest,
 } from "../services/requestService";
-import {
-  getLocalRequestNotice,
-  loadAllRequests,
-  updateStoredRequest,
-} from "../utils/requestStorage";
 
 import "../App.css";
 
+const STORAGE_KEY = "hr_maker_checker_requests";
+
 type ConfirmAction = "APPROVE" | "REJECT" | null;
+
+// Get local requests
+const getLocalRequests = (): MakerRequest[] => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const parsed: unknown = saved ? JSON.parse(saved) : [];
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("Local request error:", err);
+    return [];
+  }
+};
+
+// Update local storage after review
+const updateLocalRequest = (updatedRequest: MakerRequest) => {
+  const localRequests = getLocalRequests();
+
+  const updatedRequests = localRequests.map((request) =>
+    request.id === updatedRequest.id ? updatedRequest : request
+  );
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(updatedRequests)
+  );
+};
+
+// Format field labels
+function formatLabel(key: string): string {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+// Format field values
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+}
+
+// Compare Old Data and New Data
+function DataComparison({
+  oldData,
+  newData,
+  action,
+}: {
+  oldData?: Record<string, unknown> | null;
+  newData?: Record<string, unknown> | null;
+  action: string;
+}) {
+  const oldValues = oldData ?? {};
+  const newValues = newData ?? {};
+
+  const fields = Array.from(
+    new Set([...Object.keys(oldValues), ...Object.keys(newValues)])
+  );
+
+  if (fields.length === 0) {
+    return (
+      <div className="audit-no-data">
+        No record details available for this request.
+      </div>
+    );
+  }
+
+  return (
+    <div className="audit-comparison">
+      <div className="audit-comparison-heading">
+        <h3>Data Comparison</h3>
+        <span>Review requested changes</span>
+      </div>
+
+      <div className="audit-comparison-grid">
+        <section className="audit-comparison-column old-column">
+          <div className="audit-comparison-title">
+            <span>Old Data</span>
+            <small>BEFORE</small>
+          </div>
+
+          {fields.map((field) => (
+            <div className="audit-field" key={field}>
+              <span>{formatLabel(field)}</span>
+              <strong>{formatValue(oldValues[field])}</strong>
+            </div>
+          ))}
+        </section>
+
+        <section className="audit-comparison-column new-column">
+          <div className="audit-comparison-title">
+            <span>New Data</span>
+            <small>AFTER</small>
+          </div>
+
+          {fields.map((field) => {
+            const changed =
+              formatValue(oldValues[field]) !==
+              formatValue(newValues[field]);
+
+            return (
+              <div
+                className={`audit-field ${
+                  changed ? "audit-field-changed" : ""
+                }`}
+                key={field}
+              >
+                <span>{formatLabel(field)}</span>
+                <strong>
+                  {formatValue(newValues[field])}
+                  {changed && (
+                    <span className="audit-changed-label">
+                      Changed
+                    </span>
+                  )}
+                </strong>
+              </div>
+            );
+          })}
+        </section>
+      </div>
+
+      {action === "DELETE" && (
+        <p className="audit-action-note">
+          <Activity size={15} />
+          This request is for deleting the existing record.
+        </p>
+      )}
+
+      {action === "CREATE" && (
+        <p className="audit-action-note">
+          <Activity size={15} />
+          This request is for creating a new record.
+        </p>
+      )}
+    </div>
+  );
+}
 
 function MakerChecker() {
   const user = useSelector(
@@ -42,27 +193,51 @@ function MakerChecker() {
 
   const [remarks, setRemarks] = useState("");
   const [processing, setProcessing] = useState(false);
+
   const [confirmAction, setConfirmAction] =
     useState<ConfirmAction>(null);
 
   const isChecker = user?.role === "CHECKER";
 
+  // Fetch all requests
   useEffect(() => {
     let ignore = false;
 
     const fetchRequests = async () => {
       try {
-        const allRequests = await loadAllRequests();
+        const response = await getRequests();
+
+        const localRequests = getLocalRequests();
+        const apiRequests = response.data || [];
+
+        const combinedRequests = [
+          ...localRequests,
+          ...apiRequests.filter(
+            (apiRequest) =>
+              !localRequests.some(
+                (localRequest) =>
+                  localRequest.id === apiRequest.id
+              )
+          ),
+        ];
 
         if (!ignore) {
-          setRequests(allRequests);
+          setRequests(combinedRequests);
           setError("");
         }
-      } catch (error) {
-        console.error("Request API Error:", error);
+      } catch (err) {
+        console.error("Request API Error:", err);
+
+        const localRequests = getLocalRequests();
 
         if (!ignore) {
-          setError("Unable to load requests. Please try again.");
+          setRequests(localRequests);
+
+          if (localRequests.length === 0) {
+            setError(
+              "Unable to load requests. Please try again."
+            );
+          }
         }
       } finally {
         if (!ignore) {
@@ -78,16 +253,19 @@ function MakerChecker() {
     };
   }, []);
 
+  // Only pending requests are displayed
   const pendingRequests = requests.filter(
     (request) => request.status === "PENDING"
   );
 
+  // Open request details
   const handleView = (request: MakerRequest) => {
     setSelectedRequest(request);
     setRemarks("");
     setConfirmAction(null);
   };
 
+  // Close details modal
   const closeDetails = () => {
     if (processing) return;
 
@@ -96,136 +274,93 @@ function MakerChecker() {
     setConfirmAction(null);
   };
 
-  // Checker approval
+  // Approve request
   const handleApprove = async () => {
-    if (!selectedRequest || !user || !isChecker || processing) return;
-
-    const originalId = selectedRequest.id;
+    if (!selectedRequest || !isChecker || processing) return;
 
     try {
       setProcessing(true);
 
-      const updatedRequest = updateStoredRequest(originalId, {
+      const response = await approveRequest(selectedRequest.id);
+
+      const updatedRequest: MakerRequest = {
+        ...selectedRequest,
+        ...(response.data || {}),
         status: "APPROVED",
-        remarks: "",
-        reviewedAt: new Date().toISOString(),
-        reviewedBy: user.username,
-      }, selectedRequest);
+      };
 
-      if (!updatedRequest) {
-        throw new Error("Request could not be saved locally.");
-      }
-
-      let apiSynced = true;
-      let apiAvailable = true;
-      try {
-        // The request ID from this record stays canonical even if Mockoon
-        // responds with its static REQ001 fixture.
-        const response = await approveRequest(originalId);
-        apiSynced =
-          response.data.id === originalId &&
-          response.data.status === "APPROVED";
-      } catch (apiError) {
-        apiSynced = false;
-        apiAvailable = false;
-        console.warn("Approval saved locally; API was unavailable:", apiError);
-      }
+      updateLocalRequest(updatedRequest);
 
       setRequests((previous) =>
         previous.map((request) =>
-          request.id === originalId ? updatedRequest : request
+          request.id === selectedRequest.id
+            ? updatedRequest
+            : request
         )
       );
 
-      if (apiSynced) {
-        toast.success("Request approved successfully!");
-      } else {
-        toast.info(getLocalRequestNotice(apiAvailable));
-      }
+      toast.success("Request approved successfully!");
 
       setSelectedRequest(null);
       setRemarks("");
-    } catch (error) {
-      console.error("Approve Request Error:", error);
+    } catch (err) {
+      console.error("Approve Request Error:", err);
       toast.error("Unable to approve request.");
     } finally {
       setProcessing(false);
     }
   };
 
-  // Checker rejection
+  // Reject request
   const handleReject = async () => {
-    if (!selectedRequest || !user || !isChecker || processing) return;
+    if (!selectedRequest || !isChecker || processing) return;
 
     if (!remarks.trim()) {
       toast.error("Please enter rejection remarks.");
       return;
     }
 
-    const originalId = selectedRequest.id;
-    const rejectionRemarks = remarks.trim();
-
     try {
       setProcessing(true);
 
-      const updatedRequest = updateStoredRequest(originalId, {
+      const response = await rejectRequest(selectedRequest.id, {
+        remarks: remarks.trim(),
+      });
+
+      const updatedRequest: MakerRequest = {
+        ...selectedRequest,
+        ...(response.data || {}),
         status: "REJECTED",
-        remarks: rejectionRemarks,
-        reviewedAt: new Date().toISOString(),
-        reviewedBy: user.username,
-      }, selectedRequest);
+        remarks: remarks.trim(),
+      };
 
-      if (!updatedRequest) {
-        throw new Error("Request could not be saved locally.");
-      }
-
-      let apiSynced = true;
-      let apiAvailable = true;
-      try {
-        const response = await rejectRequest(originalId, {
-          remarks: rejectionRemarks,
-        });
-        apiSynced =
-          response.data.id === originalId &&
-          response.data.status === "REJECTED";
-      } catch (apiError) {
-        apiSynced = false;
-        apiAvailable = false;
-        console.warn("Rejection saved locally; API was unavailable:", apiError);
-      }
+      updateLocalRequest(updatedRequest);
 
       setRequests((previous) =>
         previous.map((request) =>
-          request.id === originalId ? updatedRequest : request
+          request.id === selectedRequest.id
+            ? updatedRequest
+            : request
         )
       );
 
-      if (apiSynced) {
-        toast.success("Request rejected successfully!");
-      } else {
-        toast.info(getLocalRequestNotice(apiAvailable));
-      }
+      toast.success("Request rejected successfully!");
 
       setSelectedRequest(null);
       setRemarks("");
-    } catch (error) {
-      console.error("Reject Request Error:", error);
+    } catch (err) {
+      console.error("Reject Request Error:", err);
       toast.error("Unable to reject request.");
     } finally {
       setProcessing(false);
     }
   };
 
+  // Confirm selected action
   const handleConfirmAction = async () => {
     if (!confirmAction || processing) return;
 
     const action = confirmAction;
-
-    if (action === "REJECT" && !remarks.trim()) {
-      setConfirmAction(null);
-      toast.error("Please enter rejection remarks.");
-      return;
-    }
 
     setConfirmAction(null);
 
@@ -236,22 +371,14 @@ function MakerChecker() {
     }
   };
 
-  const formatData = (
-    data?: Record<string, unknown> | null
-  ) => {
-    if (!data || Object.keys(data).length === 0) {
-      return "No data available";
-    }
-
-    return JSON.stringify(data, null, 2);
-  };
-
   if (!user) {
     return <p>Please login to continue.</p>;
   }
 
   return (
     <div className="maker-checker-page">
+
+      {/* Page Header */}
       <div className="maker-checker-header">
         <div>
           <h1>Maker–Checker</h1>
@@ -261,6 +388,7 @@ function MakerChecker() {
         <span className="role-badge">{user.role}</span>
       </div>
 
+      {/* Pending Count */}
       <div className="request-summary">
         <div className="request-summary-card">
           <div className="summary-icon pending-icon">
@@ -275,6 +403,7 @@ function MakerChecker() {
         </div>
       </div>
 
+      {/* Requests Section */}
       <section className="request-section">
         <div className="request-section-heading">
           <ClipboardList size={22} />
@@ -288,14 +417,20 @@ function MakerChecker() {
         </div>
 
         {loading ? (
-          <p className="request-message">Loading requests...</p>
+          <p className="request-message">
+            Loading requests...
+          </p>
         ) : error ? (
-          <p className="request-error">{error}</p>
+          <p className="request-error">
+            {error}
+          </p>
         ) : pendingRequests.length === 0 ? (
           <div className="request-empty-state">
             <GitPullRequest size={38} />
             <h3>No Pending Requests</h3>
-            <p>There are no pending requests right now.</p>
+            <p>
+              There are no pending requests right now.
+            </p>
           </div>
         ) : (
           <div className="request-table-wrapper">
@@ -352,6 +487,7 @@ function MakerChecker() {
         )}
       </section>
 
+      {/* Role Information */}
       <div className="role-information">
         {isChecker ? (
           <>
@@ -361,67 +497,108 @@ function MakerChecker() {
         ) : (
           <>
             <GitPullRequest size={17} />
-            You can view all pending requests. Only Checker can
-            approve or reject.
+            You can view all pending requests. Only Checker can approve or reject.
           </>
         )}
       </div>
 
+      {/* Request Details Modal */}
       {selectedRequest && (
-        <div className="employee-modal-overlay">
-          <div className="employee-modal">
-            <div className="employee-modal-header">
-              <div>
-                <h2>Request Details</h2>
-                <p>Request ID: {selectedRequest.id}</p>
+        <div
+          className="audit-modal-overlay"
+          onClick={closeDetails}
+        >
+          <div
+            className="audit-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="audit-modal-header">
+              <div className="audit-modal-title">
+                <div className="audit-modal-title-icon">
+                  <History size={21} />
+                </div>
+
+                <div>
+                  <h2>Request Details</h2>
+                  <p>Request ID: {selectedRequest.id}</p>
+                </div>
               </div>
 
               <button
                 type="button"
-                className="employee-modal-close"
+                className="audit-modal-close"
                 onClick={closeDetails}
                 disabled={processing}
+                aria-label="Close details"
               >
                 <X size={21} />
               </button>
             </div>
 
-            <div className="request-detail-info">
-              <p>
-                <strong>Module:</strong> {selectedRequest.module}
-              </p>
+            <div className="audit-modal-body">
 
-              <p>
-                <strong>Action:</strong> {selectedRequest.action}
-              </p>
+              {/* Request Status */}
+              <div className="audit-detail-status-row">
+                <span className="audit-detail-label">
+                  Request Status
+                </span>
 
-              <p>
-                <strong>Requested By:</strong>{" "}
-                {selectedRequest.requestedBy}
-              </p>
+                <span className="audit-detail-status audit-detail-pending">
+                  {selectedRequest.status}
+                </span>
+              </div>
 
-              <p>
-                <strong>Requested At:</strong>{" "}
-                {selectedRequest.requestedAt
-                  ? new Date(
-                      selectedRequest.requestedAt
-                    ).toLocaleString()
-                  : "-"}
-              </p>
-            </div>
+              {/* Request Information */}
+              <div className="audit-detail-grid">
+                <div className="audit-detail-card">
+                  <Layers size={18} />
+                  <div>
+                    <span>Module</span>
+                    <strong>{selectedRequest.module}</strong>
+                  </div>
+                </div>
 
-            <div className="request-data-section">
-              <h3>Old Data</h3>
-              <pre>{formatData(selectedRequest.oldData)}</pre>
-            </div>
+                <div className="audit-detail-card">
+                  <Activity size={18} />
+                  <div>
+                    <span>Action</span>
+                    <strong>{selectedRequest.action}</strong>
+                  </div>
+                </div>
 
-            <div className="request-data-section">
-              <h3>New Data</h3>
-              <pre>{formatData(selectedRequest.newData)}</pre>
-            </div>
+                <div className="audit-detail-card">
+                  <User size={18} />
+                  <div>
+                    <span>Requested By</span>
+                    <strong>{selectedRequest.requestedBy || "-"}</strong>
+                  </div>
+                </div>
 
-            {isChecker && (
-              <>
+                <div className="audit-detail-card">
+                  <Clock size={18} />
+                  <div>
+                    <span>Requested At</span>
+                    <strong>
+                      {selectedRequest.requestedAt
+                        ? new Date(
+                            selectedRequest.requestedAt
+                          ).toLocaleString()
+                        : "-"}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Old Data and New Data */}
+              <DataComparison
+                oldData={selectedRequest.oldData}
+                newData={selectedRequest.newData}
+                action={selectedRequest.action}
+              />
+
+              {/* Checker Remarks */}
+              {isChecker && (
                 <div className="employee-form-field">
                   <label>Rejection Remarks</label>
 
@@ -435,17 +612,22 @@ function MakerChecker() {
                     disabled={processing}
                   />
                 </div>
+              )}
+            </div>
 
-                <div className="employee-modal-actions">
-                  <button
-                    type="button"
-                    className="employee-cancel-btn"
-                    onClick={closeDetails}
-                    disabled={processing}
-                  >
-                    Close
-                  </button>
+            {/* Modal Footer */}
+            <div className="audit-modal-footer">
+              <button
+                type="button"
+                className="employee-cancel-btn"
+                onClick={closeDetails}
+                disabled={processing}
+              >
+                Close
+              </button>
 
+              {isChecker && (
+                <>
                   <button
                     type="button"
                     className="employee-delete-btn"
@@ -453,7 +635,7 @@ function MakerChecker() {
                     disabled={processing}
                   >
                     <XCircle size={16} />
-                    Reject
+                    {processing ? "Processing..." : "Reject"}
                   </button>
 
                   <button
@@ -463,27 +645,16 @@ function MakerChecker() {
                     disabled={processing}
                   >
                     <CheckCircle size={16} />
-                    Approve
+                    {processing ? "Processing..." : "Approve"}
                   </button>
-                </div>
-              </>
-            )}
-
-            {!isChecker && (
-              <div className="employee-modal-actions">
-                <button
-                  type="button"
-                  className="employee-cancel-btn"
-                  onClick={closeDetails}
-                >
-                  Close
-                </button>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Simple Confirmation Modal */}
       {confirmAction && selectedRequest && (
         <div className="employee-modal-overlay">
           <div className="confirm-modal">
