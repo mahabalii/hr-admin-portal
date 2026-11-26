@@ -43,13 +43,24 @@ const getLocalRequests = (): MakerRequest[] => {
   }
 };
 
-// Update local storage after review
-const updateLocalRequest = (updatedRequest: MakerRequest) => {
+// Update or insert request in LocalStorage
+const updateLocalRequest = (updatedRequest: MakerRequest): void => {
   const localRequests = getLocalRequests();
 
-  const updatedRequests = localRequests.map((request) =>
-    request.id === updatedRequest.id ? updatedRequest : request
+  const existingIndex = localRequests.findIndex(
+    (request) =>
+      String(request.id) === String(updatedRequest.id)
   );
+
+  let updatedRequests: MakerRequest[];
+
+  if (existingIndex !== -1) {
+    updatedRequests = localRequests.map((request, index) =>
+      index === existingIndex ? updatedRequest : request
+    );
+  } else {
+    updatedRequests = [...localRequests, updatedRequest];
+  }
 
   localStorage.setItem(
     STORAGE_KEY,
@@ -204,22 +215,41 @@ function MakerChecker() {
     let ignore = false;
 
     const fetchRequests = async () => {
+      // Load LocalStorage first
+      const localRequests = getLocalRequests();
+
+      // Show locally saved requests immediately
+      if (!ignore && localRequests.length > 0) {
+        setRequests(localRequests);
+      }
+
       try {
         const response = await getRequests();
 
-        const localRequests = getLocalRequests();
-        const apiRequests = response.data || [];
+        const latestLocalRequests = getLocalRequests();
 
-        const combinedRequests = [
-          ...localRequests,
-          ...apiRequests.filter(
-            (apiRequest) =>
-              !localRequests.some(
-                (localRequest) =>
-                  localRequest.id === apiRequest.id
-              )
-          ),
-        ];
+        const apiRequests = Array.isArray(response.data)
+          ? response.data
+          : [];
+
+        // LocalStorage data gets priority over API data
+        const requestsById = new Map<string, MakerRequest>();
+
+        latestLocalRequests.forEach((request) => {
+          requestsById.set(String(request.id), request);
+        });
+
+        apiRequests.forEach((request) => {
+          const requestId = String(request.id);
+
+          if (!requestsById.has(requestId)) {
+            requestsById.set(requestId, request);
+          }
+        });
+
+        const combinedRequests = Array.from(
+          requestsById.values()
+        );
 
         if (!ignore) {
           setRequests(combinedRequests);
@@ -228,12 +258,12 @@ function MakerChecker() {
       } catch (err) {
         console.error("Request API Error:", err);
 
-        const localRequests = getLocalRequests();
+        const latestLocalRequests = getLocalRequests();
 
         if (!ignore) {
-          setRequests(localRequests);
+          setRequests(latestLocalRequests);
 
-          if (localRequests.length === 0) {
+          if (latestLocalRequests.length === 0) {
             setError(
               "Unable to load requests. Please try again."
             );
@@ -281,31 +311,62 @@ function MakerChecker() {
     try {
       setProcessing(true);
 
-      const response = await approveRequest(selectedRequest.id);
+      let apiSuccess = true;
 
+      // Call API, but do not trust its static response ID
+      try {
+        await approveRequest(selectedRequest.id);
+      } catch (apiError) {
+        apiSuccess = false;
+        console.error(
+          "Approve API Error. Saving status locally:",
+          apiError
+        );
+      }
+
+      // Preserve the original request ID and data
       const updatedRequest: MakerRequest = {
         ...selectedRequest,
-        ...(response.data || {}),
+        id: String(selectedRequest.id),
         status: "APPROVED",
+        reviewedAt: new Date().toISOString(),
+        reviewedBy: user?.name || "Checker",
       };
 
+      // Save approved status in LocalStorage
       updateLocalRequest(updatedRequest);
 
-      setRequests((previous) =>
-        previous.map((request) =>
-          request.id === selectedRequest.id
-            ? updatedRequest
-            : request
-        )
-      );
+      // Update current screen
+      setRequests((previous) => {
+        const exists = previous.some(
+          (request) =>
+            String(request.id) === String(updatedRequest.id)
+        );
 
-      toast.success("Request approved successfully!");
+        if (exists) {
+          return previous.map((request) =>
+            String(request.id) === String(updatedRequest.id)
+              ? updatedRequest
+              : request
+          );
+        }
+
+        return [...previous, updatedRequest];
+      });
+
+      if (apiSuccess) {
+        toast.success("Request approved successfully!");
+      } else {
+        toast.warning(
+          "Request approved locally. API was unavailable."
+        );
+      }
 
       setSelectedRequest(null);
       setRemarks("");
     } catch (err) {
       console.error("Approve Request Error:", err);
-      toast.error("Unable to approve request.");
+      toast.error("Unable to save approval.");
     } finally {
       setProcessing(false);
     }
@@ -323,34 +384,65 @@ function MakerChecker() {
     try {
       setProcessing(true);
 
-      const response = await rejectRequest(selectedRequest.id, {
-        remarks: remarks.trim(),
-      });
+      let apiSuccess = true;
 
+      // Call API, but do not trust its static response ID
+      try {
+        await rejectRequest(selectedRequest.id, {
+          remarks: remarks.trim(),
+        });
+      } catch (apiError) {
+        apiSuccess = false;
+        console.error(
+          "Reject API Error. Saving status locally:",
+          apiError
+        );
+      }
+
+      // Preserve the original request ID and data
       const updatedRequest: MakerRequest = {
         ...selectedRequest,
-        ...(response.data || {}),
+        id: String(selectedRequest.id),
         status: "REJECTED",
         remarks: remarks.trim(),
+        reviewedAt: new Date().toISOString(),
+        reviewedBy: user?.name || "Checker",
       };
 
+      // Save rejected status in LocalStorage
       updateLocalRequest(updatedRequest);
 
-      setRequests((previous) =>
-        previous.map((request) =>
-          request.id === selectedRequest.id
-            ? updatedRequest
-            : request
-        )
-      );
+      // Update current screen
+      setRequests((previous) => {
+        const exists = previous.some(
+          (request) =>
+            String(request.id) === String(updatedRequest.id)
+        );
 
-      toast.success("Request rejected successfully!");
+        if (exists) {
+          return previous.map((request) =>
+            String(request.id) === String(updatedRequest.id)
+              ? updatedRequest
+              : request
+          );
+        }
+
+        return [...previous, updatedRequest];
+      });
+
+      if (apiSuccess) {
+        toast.success("Request rejected successfully!");
+      } else {
+        toast.warning(
+          "Request rejected locally. API was unavailable."
+        );
+      }
 
       setSelectedRequest(null);
       setRemarks("");
     } catch (err) {
       console.error("Reject Request Error:", err);
-      toast.error("Unable to reject request.");
+      toast.error("Unable to save rejection.");
     } finally {
       setProcessing(false);
     }

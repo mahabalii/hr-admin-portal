@@ -1,3 +1,4 @@
+
 import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -9,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { confirmDelete } from "../utils/confirmDelete";
 
 import type { RootState } from "../store/store";
 import {
@@ -216,7 +218,7 @@ function Departments() {
   const handleDelete = async (item: Department) => {
     if (!user) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmDelete(
       `Submit removal request for ${item.departmentName}?`
     );
 
@@ -248,7 +250,6 @@ function Departments() {
 
   return (
     <div className="employee-types-page">
-
       {/* Page Heading */}
       <div className="page-heading">
         <div>
@@ -270,7 +271,6 @@ function Departments() {
 
       {/* Search and Count */}
       <div className="employee-types-toolbar">
-
         <div className="employee-types-search">
           <Search size={18} />
 
@@ -292,7 +292,6 @@ function Departments() {
             Total Departments: <strong>{filteredDepartments.length}</strong>
           </span>
         </div>
-
       </div>
 
       {/* Loading */}
@@ -312,9 +311,7 @@ function Departments() {
       {/* Table */}
       {!loading && !error && (
         <div className="employee-types-table-wrapper">
-
           <table className="employee-types-table">
-
             <thead>
               <tr>
                 <th>Department Code</th>
@@ -379,9 +376,7 @@ function Departments() {
                 </tr>
               )}
             </tbody>
-
           </table>
-
         </div>
       )}
 
@@ -427,7 +422,6 @@ function Departments() {
       {showForm && (
         <div className="employee-modal-overlay">
           <div className="employee-modal">
-
             <div className="employee-modal-header">
               <div>
                 <h2>
@@ -455,7 +449,6 @@ function Departments() {
               onSubmit={handleSubmit}
             >
               <div className="employee-modal-grid">
-
                 <div className="employee-form-field">
                   <label>Department Code</label>
                   <input
@@ -503,7 +496,6 @@ function Departments() {
                     <option value="INACTIVE">Inactive</option>
                   </select>
                 </div>
-
               </div>
 
               <div className="employee-modal-actions">
@@ -527,11 +519,9 @@ function Departments() {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

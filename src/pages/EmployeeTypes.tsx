@@ -1,3 +1,4 @@
+
 import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -9,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { confirmDelete } from "../utils/confirmDelete";
 
 import type { RootState } from "../store/store";
 import {
@@ -207,7 +209,7 @@ function EmployeeTypes() {
   const handleDelete = async (item: EmployeeType) => {
     if (!user) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmDelete(
       `Submit removal request for ${item.typeName}?`
     );
 
@@ -239,7 +241,6 @@ function EmployeeTypes() {
 
   return (
     <div className="employee-types-page">
-
       {/* Page Heading */}
       <div className="page-heading">
         <div>
@@ -261,7 +262,6 @@ function EmployeeTypes() {
 
       {/* Search and Count */}
       <div className="employee-types-toolbar">
-
         <div className="employee-types-search">
           <Search size={18} />
 
@@ -282,7 +282,6 @@ function EmployeeTypes() {
             Total Types: <strong>{filteredTypes.length}</strong>
           </span>
         </div>
-
       </div>
 
       {/* Loading */}
@@ -302,9 +301,7 @@ function EmployeeTypes() {
       {/* Table */}
       {!loading && !error && (
         <div className="employee-types-table-wrapper">
-
           <table className="employee-types-table">
-
             <thead>
               <tr>
                 <th>Type Code</th>
@@ -318,11 +315,8 @@ function EmployeeTypes() {
             <tbody>
               {currentItems.map((item) => (
                 <tr key={item.id}>
-
                   <td>{item.typeCode}</td>
-
                   <td>{item.typeName}</td>
-
                   <td>{item.description}</td>
 
                   <td>
@@ -358,7 +352,6 @@ function EmployeeTypes() {
                       </div>
                     </td>
                   )}
-
                 </tr>
               ))}
 
@@ -369,11 +362,8 @@ function EmployeeTypes() {
                   </td>
                 </tr>
               )}
-
             </tbody>
-
           </table>
-
         </div>
       )}
 
@@ -414,7 +404,6 @@ function EmployeeTypes() {
       {showForm && (
         <div className="employee-modal-overlay">
           <div className="employee-modal">
-
             <div className="employee-modal-header">
               <div>
                 <h2>
@@ -442,7 +431,6 @@ function EmployeeTypes() {
               onSubmit={handleSubmit}
             >
               <div className="employee-modal-grid">
-
                 <div className="employee-form-field">
                   <label>Type Code</label>
                   <input
@@ -483,17 +471,13 @@ function EmployeeTypes() {
                   <select
                     value={form.status}
                     onChange={(e) =>
-                      handleChange(
-                        "status",
-                        e.target.value
-                      )
+                      handleChange("status", e.target.value)
                     }
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
                   </select>
                 </div>
-
               </div>
 
               <div className="employee-modal-actions">
@@ -517,11 +501,9 @@ function EmployeeTypes() {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

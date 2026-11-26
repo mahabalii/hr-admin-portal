@@ -21,6 +21,7 @@ import {
   type Employee,
 } from "../services/employeeService";
 import { submitAndStoreRequest } from "../utils/requestStorage";
+import { confirmDelete } from "../utils/confirmDelete";
 
 import "../App.css";
 
@@ -161,12 +162,14 @@ function AttendancePage() {
     }));
   };
 
+  // Delete Attendance Request
   const handleDelete = async (record: Attendance) => {
     if (!user || !isMaker) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmDelete(
       `Submit a removal request for ${record.employeeName}'s attendance on ${record.date}?`
     );
+
     if (!confirmed) return;
 
     try {

@@ -1,3 +1,4 @@
+
 import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -9,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { confirmDelete } from "../utils/confirmDelete";
 
 import type { RootState } from "../store/store";
 import {
@@ -223,7 +225,7 @@ function Designations() {
   const handleDelete = async (item: Designation) => {
     if (!user) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmDelete(
       `Submit removal request for ${item.designationName}?`
     );
 
@@ -259,7 +261,6 @@ function Designations() {
 
   return (
     <div className="employee-types-page">
-
       {/* Page Heading */}
       <div className="page-heading">
         <div>
@@ -281,7 +282,6 @@ function Designations() {
 
       {/* Search and Count */}
       <div className="employee-types-toolbar">
-
         <div className="employee-types-search">
           <Search size={18} />
 
@@ -303,7 +303,6 @@ function Designations() {
             Total Designations: <strong>{filteredDesignations.length}</strong>
           </span>
         </div>
-
       </div>
 
       {/* Loading */}
@@ -323,9 +322,7 @@ function Designations() {
       {/* Table */}
       {!loading && !error && (
         <div className="employee-types-table-wrapper">
-
           <table className="employee-types-table">
-
             <thead>
               <tr>
                 <th>Designation Code</th>
@@ -390,9 +387,7 @@ function Designations() {
                 </tr>
               )}
             </tbody>
-
           </table>
-
         </div>
       )}
 
@@ -438,7 +433,6 @@ function Designations() {
       {showForm && (
         <div className="employee-modal-overlay">
           <div className="employee-modal">
-
             <div className="employee-modal-header">
               <div>
                 <h2>
@@ -466,7 +460,6 @@ function Designations() {
               onSubmit={handleSubmit}
             >
               <div className="employee-modal-grid">
-
                 <div className="employee-form-field">
                   <label>Designation Code</label>
                   <input
@@ -532,7 +525,6 @@ function Designations() {
                     <option value="INACTIVE">Inactive</option>
                   </select>
                 </div>
-
               </div>
 
               <div className="employee-modal-actions">
@@ -556,11 +548,9 @@ function Designations() {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

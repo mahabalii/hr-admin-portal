@@ -1,7 +1,9 @@
+
 import { useEffect, useState, type FormEvent } from "react";
 import { useSelector } from "react-redux";
 import { Search, Users, Plus, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
+import { confirmDelete } from "../utils/confirmDelete";
 
 import type { RootState } from "../store/store";
 import { getEmployees, type Employee } from "../services/employeeService";
@@ -236,7 +238,7 @@ function Employees() {
   const handleDelete = async (employee: Employee) => {
     if (!user) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmDelete(
       `Submit a removal request for ${employee.firstName} ${employee.lastName}?`
     );
     if (!confirmed) return;
